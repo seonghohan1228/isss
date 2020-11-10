@@ -1,0 +1,294 @@
+DATA FILE: MEPD_SCI_20200717_0851_ORB_08795.h5
+
+
+
+<< DATA STRUCTURE >>
+
+- MEPD_SCI
+
+    |- axis0
+
+    |- axis1
+
+    |- block0_items
+
+    |- block0_values
+
+    |- block1_items
+
+    |- block1_values
+
+    |- block2_items
+
+    |- block2_values
+
+
+
+- HEPD_DIV
+
+    |- axis0
+
+    |- axis1
+
+    |- block0_items
+
+    |- block0_values
+
+    |- block1_items
+
+    |- block1_values
+
+    |- block2_items
+
+    |- block2_values
+
+
+
+
+
+<< DATA SIZE >>
+
+MEPD_SCI
+
+axis0:          310 x 1
+
+axis1:          1045 x 1
+
+block0_items:   1 x 1
+
+block0_values:  1 x 1
+
+block1_items:   287 x 1
+
+block1_values:  1045 x 287
+
+block2_items:   22 x 1
+
+block2_values:  1045 x 22
+
+
+
+HEPD_DIV
+
+axis0:          163 x 1
+
+axis1:          18628 x 1
+
+block0_items:   1 x 1
+
+block0_values:  1 x 1 (Failed to open)
+
+block1_items:   140 x 1
+
+block1_values:  18628 x 140
+
+block2_items:   22 x 1
+
+block2_values:  18628 x 22
+
+
+
+
+
+<< DATA DESCRIPTION >>    (*): Important data    (-): Not important data
+
+MEPD_SCI
+
+axis0 (-)
+
+    Names of column data in the dataset 'block1_values' and extra data('block2_items').
+
+axis1 (-)
+
+    All filled with the number 8795 (Data code?).
+
+block0_items (-)
+
+    Single text, 'TIME_STR'.
+
+block0_values (-)
+
+    Blank.
+
+block1_items (*)
+
+    Names of column data in the dataset 'block1_values'.
+
+block1_values (*)
+
+    Data for 'block1_items'. Actual data used for plotting.
+
+block2_items (*)
+
+    Extra data (position, etc.).
+
+block2_values (*)
+
+    Data for 'block2_items'. Actual data used for plotting.
+
+
+
+HEPD_DIV
+
+axis0 (-)
+
+    Names of column data in the dataset 'block1_values' and extra data('block2_items').
+
+axis1 (-)
+
+    All filled with the number 8737 (Data code?).
+
+block0_items (-)
+
+    Single text, 'TIME_STR'.
+
+block0_values (-)
+
+    Unable to open.
+
+block1_items (*)
+
+    Names of column data in the dataset 'block1_values'.
+
+block1_values (*)
+
+    Data for 'block1_items'. Actual data used for plotting.
+
+block2_items (*)
+
+    Extra data (position, etc.).
+
+block2_values (*)
+
+    Data for 'block2_items'. Actual data used for plotting.
+
+
+
+
+
+<< DETAILED DATA INDEX >>    * - Data confirmed
+
+MEPD_SCI
+
+block1_values
+
+    Column 0: FC (Data header sign)
+
+    Column 1: ID (ISSS ID)
+
+    Column 2: PC0 (Total number of bytes in)
+
+    Column 3: HK (Analog power ON/OFF)
+
+*    Column 4: DT (Subunit ID)
+
+    Column 5: PC1 (Packet count (Inc. (begin with 0)))
+
+    Column 6: LENGTH (Remained byte size)
+
+    Column 7: DUMMY (Data header sign)
+
+    Column 8: FRM_ID (???)
+
+    Column 9: FRM_LEN (???)
+
+*    Column 10: TIME (Time information)
+
+    Column 11: SUB_SEC (Subsecond, unit 1/128 sec)
+
+    Column 12: DCB_ID (Subunit ID)
+
+*    Column 13-76: DT0_CH00 ~ DT0_CH63 (Detector 0, channel 0 ~ 63)
+
+    Column 77-80: DT0_LLD_H, DT0_LLD_L, DT0_ULD_H, DT0_ULD_L
+
+*    Column 81-144: DT1_CH00 ~ DT1_CH63 (Detector 1, channel 0 ~ 63)
+
+    Column 145-148: DT1_LLD_H, DT1_LLD_L, DT1_ULD_H, DT1_ULD_L
+
+*    Column 149-212: DT2_CH00 ~ DT2_CH63 (Detector 2, channel 0 ~ 63)
+
+    Column 213-216: DT2_LLD_H, DT2_LLD_L, DT2_ULD_H, DT2_ULD_L
+
+*    Column 217-280: DT3_CH00 ~ DT3_CH63 (Detector 3, channel 0 ~ 63)
+
+    Column 281-284: DT3_LLD_H, DT3_LLD_L, DT3_ULD_H, DT3_ULD_L
+
+    Column 285-286: CS_A, CS_B (Checksum A, B)
+
+
+
+block2_values
+
+*    Column 0-3: TAMp_0 ~ TAMp_3 -> Magnetic field
+
+*    Column 4-7: TAMr_0 ~ TAMr_3 -> Magnetic field
+
+    Column 8-11: GRA_X, GRA_Y, GRA_Z, GRA_SKEW -> ???
+
+    Column 12-15: QUAT_X, QUAT_Y, QUAT_Z, QUAT_W -> ???
+
+*    Column 16-17: LATT, LONG -> Position of satellite
+
+    Column 18: HEIGHT -> ???
+
+    Column 19-21: POS_0 ~ POS_2 -> ???
+
+
+
+HEPD_DIV
+
+block1_values
+
+    Column 0: FC (Data header sign)
+
+    Column 1: ID (ISSS ID)
+
+    Column 2: PC0 (Total number of bytes in)
+
+    Column 3: HK (Analog power ON/OFF)
+
+    Column 4: DT (Subunit ID)
+
+    Column 5: PC1 (Packet count (Inc. (begin with 0)))
+
+    Column 6: LENGTH (Remained byte size)
+
+*    Column 7: TIME_x (Time information)
+
+    Column 8: SUB_SEC (Subsecond, unit 50 ns)
+
+*    Column 9-49: S0_00 ~ S0_40 (Telescope 0, channel 0 ~ 40)
+
+*    Column 50-90: S1_00 ~ S1_40 (Telescope 1, channel 0 ~ 40)
+
+*    Column 91-131: S2_00 ~ S2_40 (Telescope 2, channel 0 ~ 40)
+
+    Column 132-134: VM_A, B, C (Volrage monitoring of HV-A, B, C)
+
+    Column 135-138: TEMP_HV_A, HV_B, HV_C, HEPD (Temperature monitoring of HV-A, B, C, HEPD control board)
+
+    Column 139: CS_GS_SAT (Checksum)
+
+
+
+block2_values (Same as MEPD_SCI)
+
+    block2_values
+
+    Column 0-3: TAMp_0 ~ TAMp_3 -> Magnetic field
+
+    Column 4-7: TAMr_0 ~ TAMr_3 -> Magnetic field
+
+    Column 8-11: GRA_X, GRA_Y, GRA_Z, GRA_SKEW -> ???
+
+    Column 12-15: QUAT_X, QUAT_Y, QUAT_Z, QUAT_W -> ???
+
+    Column 16-17: LATT, LONG -> Position of satellite
+
+    Column 18: HEIGHT -> ???
+
+    Column 19-21: POS_0 ~ POS_2 -> ???
+
+
+
