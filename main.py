@@ -1,15 +1,20 @@
-#### MODULES ####
+#### MODULES ############################################################
+
 import h5py
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+import matplotlib.gridspec as gridspec
 from mpl_toolkits.basemap import Basemap
 from datetime import datetime
 import aacgmv2
 
+#########################################################################
 
-#### CONSTANTS ####
+
+#### CONSTANTS ##########################################################
+
 # Filename (file path is created automatically in hdf_read()).
 HEPD_FILENAME = 'HEPD_DIV_20200717_0850_ORB_08795.h5'
 MEPD_FILENAME = 'MEPD_SCI_20200717_0851_ORB_08795.h5'
@@ -40,7 +45,9 @@ TEL2 = 91           # Telescope 2
 TEL_LEN = 40        # Telescope data length
 
 
-#### FUNCTIONS ####
+
+#### FUNCTIONS ########################################################
+
 ## Data read function
 # Read HDF5 data and returns all required datasets.
 def read_hdf(filename):
@@ -57,6 +64,7 @@ def read_hdf(filename):
         dataset2 = np.array(hdf[path2])
 
     return dataset1, dataset2
+
 
 ## Data select functions
 def select_HEPD(dataset1, dataset2):
@@ -82,6 +90,7 @@ def select_MEPD(dataset1, dataset2):
     det3 = dataset1[:, DET3:DET3 + DET_LEN]
 
     return time, dt, pc1, pos, mag, det0, det1, det2, det3
+
 
 ## Calculating functions
 # Slice data into MEPD-A and MEPD-B (works for PC1 and TIME)
@@ -126,11 +135,51 @@ def new_cmap():
 
     return new_cmap
 
+# Select closest value
+def closest(arr, value):
+    c = 0
+    for i in range(len(arr)):
+        if (abs(arr[i] - value) < abs(arr[c] - value)):
+            c = i
+    
+    return c
+
 # Geomagnetic latitude
-def geo_lat(LAT, LON, ALT, start_time):
-    for i in range(120):
-        for j in range(61):
-            print(np.array(aacgmv2.get_aacgm_coord(3*j - 90, i, ALT, start_time)))
+def geo_lat(ALT, start_time):
+    arr = np.zeros((181, 360))
+    geo_lat = np.zeros((5, 360))
+    for j in range(360):
+        for i in range(181):
+            # Change altitude into km.
+            arr[i][j] = (np.array(aacgmv2.get_aacgm_coord(i - 90, j - 180, int(ALT / 1000), start_time)))[0]
+    
+    for j in range(360):
+        for i in range(5):
+            geo_lat[i, j] = closest(arr[:, j], 30 * i - 60) - 90
+    
+    return geo_lat
+
+# Geomagnetic latitude (0.5 deg) - NOT GOOD
+"""
+def geo_lat(ALT, start_time):
+    arr = np.zeros((361, 720))
+    geo_lat = np.zeros((5, 720))
+    for j in range(720):
+        for i in range(361):
+            # Change altitude into km.
+            arr[i][j] = (np.array(aacgmv2.get_aacgm_coord(i / 2 - 90, j / 2 - 180, int(ALT / 1000), start_time)))[0]
+    
+    for j in range(720):
+        for i in range(5):
+            geo_lat[i, j] = closest(arr[:, j], 30 * i - 60) - 90
+    
+    return geo_lat
+"""
+
+# Telescope data (proton, electron)
+def div_tel(tel0, tel1, tel2):
+    # Return proton and electron data.
+    return tel0[:, 17:21], tel1[:, 17:21], tel2[:, 17:21], tel0[:, 2:13], tel1[:, 2:13], tel2[:, 2:13]
 
 
 ## Plotting functions
@@ -203,11 +252,21 @@ def plot_POS(POS, TIME, POLE):
     
     cbar = fig.colorbar(s1, ax=ax2, label='Time (UNIX)')
 
-    ML = geo_lat(LAT, LON, ALT[0], start_time)
-    for i in range(61):
-        for j in range(120):
-            if ML[i][j][0] < 1:
-                m1.scatter(X[i], Y[j])
+    # Plot geomagnetic latitude.
+    m = geo_lat(ALT[0], start_time)
+    for i in range(5):
+        x, y = m1(np.arange(360) - 180, m[i, :])
+        m1.plot(x, y, 'b', linewidth=1)
+        m2.plot(x, y, 'b', linewidth=1)
+        if i < 2:
+            ax1.annotate(str(30 * i - 60) + 'S', (x[0], y[0]), color='b')
+            ax2.annotate(str(30 * i - 60) + 'S', (x[0], y[0]), color='b')
+        elif i == 2:
+            ax1.annotate('0', (x[0], y[0]), color='b')
+            ax2.annotate('0', (x[0], y[0]), color='b')
+        elif i > 2:
+            ax1.annotate(str(30 * i - 60) + 'N', (x[0], y[0]), color='b')
+            ax2.annotate(str(30 * i - 60) + 'N', (x[0], y[0]), color='b')
 
     # Plot terminator
     m1.nightshade(start_time)
@@ -356,25 +415,45 @@ def plot_DET(DET0, DET1, DET2, DET3, DT, TIME):
 # INCOMPLETE: HEPD proton and electron not divided
 # Plot Telescope Data (Energy) vs. TIME
 def plot_TEL(TEL0, TEL1, TEL2, TIME):
-    # Plot MEPD-A
-    fig, (ax0, ax1, ax2) = plt.subplots(nrows=3, ncols=1, sharex=True, figsize=(8, 6))
-    im = ax0.imshow(X=np.transpose(TEL0), origin='lower', cmap=new_cmap(), aspect='auto', interpolation='none')
-    im = ax1.imshow(X=np.transpose(TEL1), origin='lower', cmap=new_cmap(), aspect='auto', interpolation='none')
-    im = ax2.imshow(X=np.transpose(TEL2), origin='lower', cmap=new_cmap(), aspect='auto', interpolation='none')
-    ax0.text(0.02, 0.85, 'Telescope 0', horizontalalignment='left', transform=ax0.transAxes)
-    ax1.text(0.02, 0.85, 'Telescope 1', horizontalalignment='left', transform=ax1.transAxes)
-    ax2.text(0.02, 0.85, 'Telescope 2', horizontalalignment='left', transform=ax2.transAxes)
-    fig.subplots_adjust(left=0.08, right=0.9, bottom=0.05, top=0.95, wspace=0.0, hspace=0.0)
-    cb_ax = fig.add_axes([0.92, 0.05, 0.02, 0.9])
-    cbar = fig.colorbar(im, cax=cb_ax)
-    ax1.set_ylabel('Energy [keV]')
+    p0, p1, p2, e0, e1, e2 = div_tel(TEL0, TEL1, TEL2)
 
-    plt.savefig('./plots/HEPD Telescope.png')
+    # Plot HEPD proton data
+    fig_p, (ax0_p, ax1_p, ax2_p) = plt.subplots(nrows=3, ncols=1, sharex=True, figsize=(8, 6))
+    im_p = ax0_p.imshow(X=np.transpose(p0), origin='lower', cmap=new_cmap(), aspect='auto', interpolation='none')
+    im_p = ax1_p.imshow(X=np.transpose(p1), origin='lower', cmap=new_cmap(), aspect='auto', interpolation='none')
+    im_p = ax2_p.imshow(X=np.transpose(p2), origin='lower', cmap=new_cmap(), aspect='auto', interpolation='none')
+    ax0_p.text(0.02, 0.85, 'Telescope 0', horizontalalignment='left', transform=ax0_p.transAxes)
+    ax1_p.text(0.02, 0.85, 'Telescope 1', horizontalalignment='left', transform=ax1_p.transAxes)
+    ax2_p.text(0.02, 0.85, 'Telescope 2', horizontalalignment='left', transform=ax2_p.transAxes)
+    fig_p.subplots_adjust(left=0.08, right=0.9, bottom=0.05, top=0.95, wspace=0.0, hspace=0.0)
+    cb_ax_p = fig_p.add_axes([0.92, 0.05, 0.02, 0.9])
+    cbar_p = fig_p.colorbar(im_p, cax=cb_ax_p)
+    ax1_p.set_ylabel('HEPD Proton Energy [keV]')
+
+    plt.savefig('./plots/HEPD Telescope Proton.png')
+
+    # Plot HEPD electron data
+    fig_e, (ax0_e, ax1_e, ax2_e) = plt.subplots(nrows=3, ncols=1, sharex=True, figsize=(8, 6))
+    im_e = ax0_e.imshow(X=np.transpose(TEL0), origin='lower', cmap=new_cmap(), aspect='auto', interpolation='none')
+    im_e = ax1_e.imshow(X=np.transpose(TEL1), origin='lower', cmap=new_cmap(), aspect='auto', interpolation='none')
+    im_e = ax2_e.imshow(X=np.transpose(TEL2), origin='lower', cmap=new_cmap(), aspect='auto', interpolation='none')
+    ax0_e.text(0.02, 0.85, 'Telescope 0', horizontalalignment='left', transform=ax0_e.transAxes)
+    ax1_e.text(0.02, 0.85, 'Telescope 1', horizontalalignment='left', transform=ax1_e.transAxes)
+    ax2_e.text(0.02, 0.85, 'Telescope 2', horizontalalignment='left', transform=ax2_e.transAxes)
+    fig_e.subplots_adjust(left=0.08, right=0.9, bottom=0.05, top=0.95, wspace=0.0, hspace=0.0)
+    cb_ax_e = fig_e.add_axes([0.92, 0.05, 0.02, 0.9])
+    cbar_e = fig_e.colorbar(im_e, cax=cb_ax_e)
+    ax1_e.set_ylabel('HEPD Electron Energy [keV]')
+
+    plt.savefig('./plots/HEPD Telescope Electron.png')
+
     plt.show()
     plt.close('all')
 
+####################################################################################
 
-#### RUN ####
+#### RUN ##########################################################################
+
 # Read and store data.
 HEPD_dataset1, HEPD_dataset2 = read_hdf(HEPD_FILENAME)
 MEPD_dataset1, MEPD_dataset2 = read_hdf(MEPD_FILENAME)
@@ -387,7 +466,7 @@ MEPD_time, dt, MEPD_pc1, MEPD_pos, MEPD_mag, det0, det1, det2, det3 = select_MEP
 #plot_PC1(HEPD_pc1, MEPD_pc1, HEPD_time, MEPD_time, dt)
 
 # Satellite position plot can be obtained from either HEPD or MEPD data (might vary slightly).
-plot_POS(MEPD_pos, MEPD_time, SOUTH_POLE)
+#plot_POS(MEPD_pos, MEPD_time, SOUTH_POLE)
 
 # Magnetic field plot can be obtained from either HEPD or MEPD data (HEPD seems to be closer).
 #plot_MAG(HEPD_mag, HEPD_time)
@@ -398,7 +477,7 @@ plot_POS(MEPD_pos, MEPD_time, SOUTH_POLE)
 # Telescope plot uses HEPD data.
 #plot_TEL(tel0, tel1, tel2, HEPD_time)
 
-
+######################################################################################
 
 
 
