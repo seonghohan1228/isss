@@ -342,6 +342,8 @@ def plot_graph(HEPD_time,HEPD_pc1, HEPD_pos, HEPD_mag, tel0, tel1, tel2,
         fig.add_subplot(ax)
 
     fig.subplots_adjust(left=0.08, right=0.9, bottom=0.05, top=0.95, wspace=0.0, hspace=0.0)
+    ax.xaxis_date()
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
     #cb_ax_p = fig_p.add_axes([0.92, 0.05, 0.02, 0.9])
     #cbar_p = fig_p.colorbar(im_p, cax=cb_ax_p)
 
