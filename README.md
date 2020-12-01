@@ -21,7 +21,7 @@ path/to/anaconda3/Library/bin
 # Packages
 ## Windows
 ### basemap
-In VS Code terminal, type
+In VS Code terminal, type:
 ```
 conda init
 conda create -p ./venv python=<python-version>
@@ -34,12 +34,21 @@ For aacgm v2, type
 pip install aacgmv2
 ```
 ## Linux
-In Vs Code terminal, type
+In VS Code terminal, type:
 ```
 conda install h5py
 conda install numpy
 conda install matplotlib
 conda install -c conda-forge basemap
-pip install aacgmv2
+pip3 install aacgmv2
+```
+
+Installation of SpacePy requires both a C and a Fortran compiler.
+In terminal, type:
+```
+sudo apt-get install gfortran
+```
+In VS Code terminal, type:
+pip3 install spacepy
 ```
 

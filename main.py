@@ -1,5 +1,6 @@
 #### MODULES ############################################################
-
+import os
+os.environ["PROJ_LIB"] = "/home/seonghohan/anaconda3/share";
 import h5py
 import numpy as np
 import matplotlib
@@ -442,8 +443,6 @@ def plot_graph(HEPD_time,HEPD_pc1, HEPD_pos, HEPD_mag, tel0, tel1, tel2,
         plt.savefig('./plots/Combined.pdf')
     if filetype == 'PNG':
         plt.savefig('./plots/Combined.png')
-    
-    plt.show()
 
 ####################################################################################
 
