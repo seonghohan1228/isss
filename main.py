@@ -10,6 +10,10 @@ import matplotlib.gridspec as gridspec
 from mpl_toolkits.basemap import Basemap
 from datetime import datetime
 import aacgmv2
+from spacepy import coordinates as coords
+from spacepy.time import Ticktock
+import spacepy.datamodel as dm
+import warnings
 
 #########################################################################
 
@@ -17,10 +21,6 @@ import aacgmv2
 #### CONSTANTS ##########################################################
 
 # Filename (file path is created automatically in hdf_read()).
-HEPD_FILENAME = 'HEPD_DIV_20200717_0850_ORB_08795.h5'
-MEPD_FILENAME = 'MEPD_SCI_20200717_0851_ORB_08795.h5'
-ORBIT = 8795
-
 NORTH_POLE = 90
 SOUTH_POLE = -90
 
@@ -51,6 +51,33 @@ TEL_LEN = 40        # Telescope data length
 
 
 #### FUNCTIONS ########################################################
+
+def get_file_names(orbit_no, files):
+    if orbit_no < 0:
+        print('Error: Invalid orbit number.')
+        exit()
+    if orbit_no < 10000:
+        orbit_no = '0' + str(orbit_no)
+    else:
+        orbit_no = str(orbit_no)
+
+    for filename in files:
+        # Check orbit number for match.
+        if filename[27:32] == orbit_no:
+            # HEPD
+            if filename[0:4] == 'HEPD':
+                hepd = filename
+                continue
+            elif filename[0:4] == 'MEPD':
+                mepd = filename
+                continue
+        
+        # No match found.
+        if filename == files[-1]:
+            print('Error: No matching file found.')
+            exit()
+
+    return hepd, mepd
 
 ## Data read function
 # Read HDF5 data and returns all required datasets.
@@ -149,36 +176,22 @@ def closest(arr, value):
     return c
 
 # Geomagnetic latitude
-def geo_lat(ALT, start_time):
+def geo_lat(alt, start_time):
     arr = np.zeros((181, 360))
     geo_lat = np.zeros((5, 360))
     for j in range(360):
         for i in range(181):
             # Change altitude into km.
-            arr[i][j] = (np.array(aacgmv2.get_aacgm_coord(i - 90, j - 180, int(ALT / 1000), start_time)))[0]
+            coordinates = coords.Coords([alt / 1000, i - 90, j - 180], 'GEO', 'sph')
+            coordinates.ticks = Ticktock(['2019-07-17T17:51:15'], 'ISO') # Unable to use 2020 data.
+            arr[i][j] = coordinates.convert('MAG', 'sph').lati
+            #arr[i][j] = (np.array(aacgmv2.get_aacgm_coord(i - 90, j - 180, int(alt / 1000), start_time)))[0]
     
     for j in range(360):
         for i in range(5):
             geo_lat[i, j] = closest(arr[:, j], 30 * i - 60) - 90
     
     return geo_lat
-
-# Geomagnetic latitude (0.5 deg) - NOT GOOD
-"""
-def geo_lat(ALT, start_time):
-    arr = np.zeros((361, 720))
-    geo_lat = np.zeros((5, 720))
-    for j in range(720):
-        for i in range(361):
-            # Change altitude into km.
-            arr[i][j] = (np.array(aacgmv2.get_aacgm_coord(i / 2 - 90, j / 2 - 180, int(ALT / 1000), start_time)))[0]
-    
-    for j in range(720):
-        for i in range(5):
-            geo_lat[i, j] = closest(arr[:, j], 30 * i - 60) - 90
-    
-    return geo_lat
-"""
 
 # Telescope data (proton, electron)
 def div_tel(tel0, tel1, tel2):
@@ -187,11 +200,11 @@ def div_tel(tel0, tel1, tel2):
 
 
 # Plot graphs
-def plot_graph(HEPD_time,HEPD_pc1, HEPD_pos, HEPD_mag, tel0, tel1, tel2,
+def plot_graph(orbit_no, HEPD_time,HEPD_pc1, HEPD_pos, HEPD_mag, tel0, tel1, tel2,
             MEPD_time, dt, MEPD_pc1, MEPD_pos, MEPD_mag, det0, det1, det2, det3, pole, filetype):
     # Create figure.
-    fig = plt.figure(figsize=(20, 28))
-    outer = gridspec.GridSpec(4, 2, wspace=0.1, hspace=0.1)
+    fig = plt.figure(figsize=(20, 30))
+    outer = gridspec.GridSpec(4, 2, wspace=0.1, hspace=0.3)
 
     ## PC1
     inner = gridspec.GridSpecFromSubplotSpec(1, 2,
@@ -327,7 +340,7 @@ def plot_graph(HEPD_time,HEPD_pc1, HEPD_pos, HEPD_mag, tel0, tel1, tel2,
     
     # Plot HEPD proton data
     inner = gridspec.GridSpecFromSubplotSpec(3, 1,
-                    subplot_spec=outer[4], wspace=0.1, hspace=0.1)
+                    subplot_spec=outer[4], wspace=0.05, hspace=0.01)
 
     xmin = mdates.date2num(datetime.fromtimestamp(HEPD_time[0]))
     xmax = mdates.date2num(datetime.fromtimestamp(HEPD_time[-1]))
@@ -342,7 +355,7 @@ def plot_graph(HEPD_time,HEPD_pc1, HEPD_pos, HEPD_mag, tel0, tel1, tel2,
             ax.set_ylabel('HEPD Proton Energy [MeV]')
         fig.add_subplot(ax)
 
-    fig.subplots_adjust(left=0.08, right=0.9, bottom=0.05, top=0.95, wspace=0.0, hspace=0.0)
+    fig.subplots_adjust(left=0.08, right=0.9, bottom=0.01, top=0.99, wspace=0.0, hspace=0.0)
     ax.xaxis_date()
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
     #cb_ax_p = fig_p.add_axes([0.92, 0.05, 0.02, 0.9])
@@ -350,7 +363,7 @@ def plot_graph(HEPD_time,HEPD_pc1, HEPD_pos, HEPD_mag, tel0, tel1, tel2,
 
     # Plot HEPD electron data
     inner = gridspec.GridSpecFromSubplotSpec(3, 1,
-                    subplot_spec=outer[6], wspace=0.1, hspace=0.1)
+                    subplot_spec=outer[6], wspace=0.05, hspace=0.01)
 
     e = [e0, e1, e2]
     for i in range(3):
@@ -362,7 +375,7 @@ def plot_graph(HEPD_time,HEPD_pc1, HEPD_pos, HEPD_mag, tel0, tel1, tel2,
             ax.set_ylabel('HEPD Electron Energy [MeV]')
         fig.add_subplot(ax)
         
-    fig.subplots_adjust(left=0.08, right=0.9, bottom=0.05, top=0.95, wspace=0.0, hspace=0.0)
+    fig.subplots_adjust(left=0.08, right=0.9, bottom=0.01, top=0.99, wspace=0.0, hspace=0.0)
     ax.xaxis_date()
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
     #cb_ax_e = fig_e.add_axes([0.92, 0.05, 0.02, 0.9])
@@ -379,7 +392,7 @@ def plot_graph(HEPD_time,HEPD_pc1, HEPD_pos, HEPD_mag, tel0, tel1, tel2,
 
     # MEPD-A
     inner = gridspec.GridSpecFromSubplotSpec(4, 1,
-                    subplot_spec=outer[5], wspace=0.1, hspace=0.1)
+                    subplot_spec=outer[5], wspace=0.05, hspace=0.01)
     
     # Plot MEPD-A
     xmin = mdates.date2num(datetime.fromtimestamp(MEPD_time_A[0]))
@@ -397,7 +410,7 @@ def plot_graph(HEPD_time,HEPD_pc1, HEPD_pos, HEPD_mag, tel0, tel1, tel2,
             ax.set_ylabel('MEPD-A')
         fig.add_subplot(ax)
     
-    fig.subplots_adjust(left=0.08, right=0.9, bottom=0.05, top=0.95, wspace=0.0, hspace=0.0)
+    fig.subplots_adjust(left=0.08, right=0.9, bottom=0.01, top=0.99, wspace=0.0, hspace=0.0)
     #cb_ax = fig.add_axes([0.92, 0.05, 0.02, 0.9])
     #cbar = fig.colorbar(im, cax=cb_ax)
     ax.xaxis_date()
@@ -406,7 +419,7 @@ def plot_graph(HEPD_time,HEPD_pc1, HEPD_pos, HEPD_mag, tel0, tel1, tel2,
 
     # MEPD-B
     inner = gridspec.GridSpecFromSubplotSpec(4, 1,
-                    subplot_spec=outer[7], wspace=0.1, hspace=0.1)
+                    subplot_spec=outer[7], wspace=0.05, hspace=0.01)
     
     # Plot MEPD-B
     det = [det0_B, det1_B, det2_B, det3_B]
@@ -421,7 +434,7 @@ def plot_graph(HEPD_time,HEPD_pc1, HEPD_pos, HEPD_mag, tel0, tel1, tel2,
             ax.set_ylabel('MEPD-B')
         fig.add_subplot(ax)
 
-    fig.subplots_adjust(left=0.08, right=0.9, bottom=0.05, top=0.95, wspace=0.0, hspace=0)
+    fig.subplots_adjust(left=0.08, right=0.9, bottom=0.01, top=0.99, wspace=0.0, hspace=0.0)
     #cb_ax = fig.add_axes([0.92, 0.05, 0.02, 0.9])
     #cbar = fig.colorbar(im, cax=cb_ax)
     ax.xaxis_date()
@@ -432,31 +445,58 @@ def plot_graph(HEPD_time,HEPD_pc1, HEPD_pos, HEPD_mag, tel0, tel1, tel2,
     b = end_time.strftime('%H:%M:%S')
     c = MEPD_time[-1] - MEPD_time[0]
 
-    if ORBIT < 10000 :
-        title = 'Orbit: 0' + str(ORBIT) + '   Date: ' + str(a) + ' - ' + str(b) + 'UT (' + str(c) + ' sec)'
+    if orbit_no < 10000 :
+        title = 'Orbit: 0' + str(orbit_no) + '   Date: ' + str(a) + ' - ' + str(b) + 'UT (' + str(c) + ' sec)'
+        savename = './plots/ORB_0' + str(orbit_no)
     else:
-        title = 'Orbit: ' + str(ORBIT) + '   Date: ' + str(a) + ' - ' + str(b) + 'UT (' + str(c) + ' sec)'
+        title = 'Orbit: ' + str(orbit_no) + '   Date: ' + str(a) + ' - ' + str(b) + 'UT (' + str(c) + ' sec)'
+        savename = './plots/ORB_' + str(orbit_no)
 
     fig.suptitle(title, fontsize=20)
 
     if filetype == 'PDF':
-        plt.savefig('./plots/Combined.pdf')
+        plt.savefig(savename + '.pdf')
     if filetype == 'PNG':
-        plt.savefig('./plots/Combined.png')
+        plt.savefig(savename + '.png')
 
 ####################################################################################
 
 #### RUN ##########################################################################
 
+# Ignore warnings.
+warnings.filterwarnings('ignore')
+
+files = os.listdir(os.getcwd() + '/data/')
+
+## Show available files.
+print('\nAvailable files:')
+for filename in files:
+    print(filename)
+print('\n')
+
+ORBIT_NO = 8795
+
+# Get filenames.
+HEPD_filename, MEPD_filename = get_file_names(ORBIT_NO, files)
+
+HEPD_data = dm.fromHDF5('data/' + HEPD_filename)
+MEPD_data = dm.fromHDF5('data/' + MEPD_filename)
+
+## Show file tree.
+print('File trees:')
+HEPD_data.tree(attrs=False)
+MEPD_data.tree(attrs=False)
+print('\n')
+
 # Read and store data.
-HEPD_dataset1, HEPD_dataset2 = read_hdf(HEPD_FILENAME)
-MEPD_dataset1, MEPD_dataset2 = read_hdf(MEPD_FILENAME)
+HEPD_dataset1, HEPD_dataset2 = read_hdf(HEPD_filename)
+MEPD_dataset1, MEPD_dataset2 = read_hdf(MEPD_filename)
 
 # Select required data from datasets.
 HEPD_time, HEPD_pc1, HEPD_pos, HEPD_mag, tel0, tel1, tel2 = select_HEPD(HEPD_dataset1, HEPD_dataset2)
 MEPD_time, dt, MEPD_pc1, MEPD_pos, MEPD_mag, det0, det1, det2, det3 = select_MEPD(MEPD_dataset1, MEPD_dataset2)
 
-plot_graph(HEPD_time,HEPD_pc1, HEPD_pos, HEPD_mag, tel0, tel1, tel2,
+plot_graph(ORBIT_NO, HEPD_time,HEPD_pc1, HEPD_pos, HEPD_mag, tel0, tel1, tel2,
             MEPD_time, dt, MEPD_pc1, MEPD_pos, MEPD_mag, det0, det1, det2, det3, SOUTH_POLE, PDF)
 
 ######################################################################################
