@@ -15,7 +15,7 @@ conda install -c conda-forge basemap
 pip3 install aacgmv2
 ```
 
-Installation of SpacePy requires both a C and a Fortran compiler.
+Installation of SpacePy requires both C and Fortran compiler.
 In terminal, type:
 ```
 sudo apt-get install gfortran
