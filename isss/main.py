@@ -3,7 +3,6 @@
 #### MODULES ############################################################
 
 import matplotlib.dates as mdates
-import matplotlib.gridspec as gridspec
 from mpl_toolkits.basemap import Basemap
 from datetime import datetime
 
@@ -11,60 +10,10 @@ from functions import *
 from classes import *
 from constants import *
 from data_functions import *
-
+'''
 # Plot graphs
 def plot_graph(orbit_no, HEPD_time,HEPD_pc1, HEPD_pos, HEPD_mag, tel0, tel1, tel2,
             MEPD_time, dt, MEPD_pc1, MEPD_pos, MEPD_mag, det0, det1, det2, det3, pole, filetype):
-    # Create figure.
-    fig = plt.figure(figsize=(20, 30))
-    outer = gridspec.GridSpec(4, 2, wspace=0.1, hspace=0.3)
-
-    ## PC1
-    inner = gridspec.GridSpecFromSubplotSpec(1, 2,
-                    subplot_spec=outer[0], wspace=0.1, hspace=0.1)
-    
-    # Divide PC1 data into MEPD-A and MEPD-B
-    MEPD_pc1_A, MEPD_pc1_B = sliceAB(MEPD_pc1, dt, 3)
-    MEPD_time_A, MEPD_time_B = sliceAB(MEPD_time, dt, 3)
-
-    # Plot HEPD PC1 data.
-    ax = plt.Subplot(fig, inner[0])
-    ax.plot(HEPD_pc1, HEPD_time - HEPD_time[0], '-k')
-    fig.add_subplot(ax)
-    ax.set_title('HEPD: Time vs PC1')
-    ax.set_xlabel('PC1')
-    ax.set_ylabel('Time (sec)')
-
-    # Plot MEPD-A and MEPD-B PC1 data.
-    ax = plt.Subplot(fig, inner[1])
-    ax.plot(MEPD_pc1_A, MEPD_time_A - MEPD_time_A[0], '-k', label='MEPD-A')
-    ax.plot(MEPD_pc1_B, MEPD_time_B - MEPD_time_B[0], '-r', label='MEPD-B')
-    fig.add_subplot(ax)
-    ax.set_title('MEPD: Time vs PC1')
-    ax.set_xlabel('PC1')
-
-    plt.legend()
-
-    ## Magnetic field
-    inner = gridspec.GridSpecFromSubplotSpec(1, 1,
-                    subplot_spec=outer[2], wspace=0.1, hspace=0.1)
-
-    mag_avg = B_avg(HEPD_mag)
-
-    # Plot magnetic field data.
-    ax = plt.Subplot(fig, inner[0])
-    ax.plot(HEPD_time, HEPD_mag[:, 0], 'k', label='Bx')
-    ax.plot(HEPD_time, HEPD_mag[:, 1], 'b', label='By')
-    ax.plot(HEPD_time, HEPD_mag[:, 2], 'r', label='Bz')
-    ax.plot(HEPD_time, HEPD_mag[:, 4], '--k', label='IGRF Bx')
-    ax.plot(HEPD_time, HEPD_mag[:, 5], '--b', label='IGRF By')
-    ax.plot(HEPD_time, HEPD_mag[:, 6], '--r', label='IGRF Bz')
-    ax.plot(HEPD_time, mag_avg, '--y', label='IGRF|B|')
-    fig.add_subplot(ax)
-    
-    plt.ylabel('Magnetic Field (nT)')
-    plt.ylim(-60000, 60000)
-    plt.legend(loc='upper center', ncol=7, prop={'size': 8})
 
     ## Satellite position
     # Mercador projection
@@ -254,30 +203,14 @@ def plot_graph(orbit_no, HEPD_time,HEPD_pc1, HEPD_pos, HEPD_mag, tel0, tel1, tel
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
 
 
-    a = start_time.strftime('%Y/%m/%d %H:%M:%S')
-    b = end_time.strftime('%H:%M:%S')
-    c = MEPD_time[-1] - MEPD_time[0]
-
-    if orbit_no < 10000 :
-        title = 'Orbit: 0' + str(orbit_no) + '   Date: ' + str(a) + ' - ' + str(b) + 'UT (' + str(c) + ' sec)'
-        savename = './plots/ORB_0' + str(orbit_no)
-    else:
-        title = 'Orbit: ' + str(orbit_no) + '   Date: ' + str(a) + ' - ' + str(b) + 'UT (' + str(c) + ' sec)'
-        savename = './plots/ORB_' + str(orbit_no)
-
-    fig.suptitle(title, fontsize=20)
-
-    if filetype == 'PDF':
-        plt.savefig(savename + '.pdf')
-    if filetype == 'PNG':
-        plt.savefig(savename + '.png')
-
+    
+'''
 ####################################################################################
 
 def main():
     env_setup(CONDA_PATH)
     HEPD, MEPD = data(ORBIT_NO, DATA_PATH, True, True)
-    plot(HEPD, MEPD, SOUTH_POLE, PDF)
+    plot(HEPD, MEPD, SOUTH_POLE, 'plot_combined', PDF)
 
 if __name__ == '__main__':
     main()
