@@ -1,25 +1,20 @@
 # file_functions.py
-
 import os
 import warnings
 
-def env_setup(conda_path):
-    ''' This function sets the environment for proper results. '''
-    os.environ["PROJ_LIB"] = conda_path;
-    warnings.filterwarnings('ignore')
-
-def show_avail_file(data_path):
-    ''' This function shows available files in the data directory. '''
+def get_files(data_path, show_avail):
+    ''' Gets all the available files in the isss/data/ directory. 
+        If 'show_avail is set to True, it shows all the available files. '''
     files = os.listdir(data_path)
-    print('\nAvailable files:')
-    for filename in files:
-        print('- ', filename)
-    print('\n')
+    if show_avail == True:
+        print('\nAvailable files:')
+        for filename in files:
+            print('- ', filename)
+        print('\n')
     return files
 
 def get_file_paths(orbit_no, data_path, files):
-    ''' This function returns the HEPD and MEPD filenames of the corresponding
-        orbit number. '''
+    ''' Gets the HEPD and MEPD file paths of the corresponding orbit number. '''
     count = 0
     # Check for invalid orbit number.
     if orbit_no < 0:
@@ -38,7 +33,7 @@ def get_file_paths(orbit_no, data_path, files):
                 count += 1
                 continue
             elif filename[0:4] == 'MEPD':
-                mepd = data_path + filename
+                mepd_file_path = data_path + filename
                 count += 1
                 continue
         # No match found.
@@ -49,7 +44,7 @@ def get_file_paths(orbit_no, data_path, files):
     return hepd_file_path, mepd_file_path
 
 def file_tree(HEPD_data, MEPD_data):
-    ''' This function prints the file structure tree. '''
+    ''' Prints the file structure tree. '''
     print('File tree:')
     HEPD_data.tree(attrs=False)
     print('\n')

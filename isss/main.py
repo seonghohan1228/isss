@@ -1,7 +1,6 @@
 # main.py
 
 #### MODULES ############################################################
-import h5py
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
@@ -12,59 +11,10 @@ from datetime import datetime
 import aacgmv2
 from spacepy import coordinates as coords
 from spacepy.time import Ticktock
-import spacepy.datamodel as dm
 
-from file_functions import *
-from data_functions import *
+from functions import *
+from classes import *
 from constants import *
-
-
-#### FUNCTIONS ########################################################
-
-
-
-## Data read function
-# Read HDF5 data and returns all required datasets.
-def read_hdf(filename):
-    # group: HEPD_DIV or MEPD_SCI
-    group = filename[0:8]
-    filepath = 'data/' + filename
-
-    # Reads hdf file and closes as it leaves with statement.
-    with h5py.File(filepath, 'r') as hdf:
-        path1 = '/' + group + '/' + DATASET1
-        path2 = '/' + group + '/' + DATASET2
-
-        dataset1 = np.array(hdf[path1])
-        dataset2 = np.array(hdf[path2])
-
-    return dataset1, dataset2
-
-
-## Data select functions
-def select_HEPD(dataset1, dataset2):
-    time = dataset1[:, HEPD_TIME]
-    pc1 = dataset1[:, PC1]
-    pos = dataset2[:, POS:POS + POS_LEN]
-    mag = dataset2[:, MAG:MAG + MAG_LEN]
-    tel0 = dataset1[:, TEL0:TEL0 + TEL_LEN]
-    tel1 = dataset1[:, TEL1:TEL1 + TEL_LEN]
-    tel2 = dataset1[:, TEL2:TEL2 + TEL_LEN]
-
-    return time, pc1, pos, mag, tel0, tel1, tel2
-
-def select_MEPD(dataset1, dataset2):
-    time = dataset1[:, MEPD_TIME]
-    dt = dataset1[:, DT]
-    pc1 = dataset1[:, PC1]
-    pos = dataset2[:, POS:POS + POS_LEN]
-    mag = dataset2[:, MAG:MAG + MAG_LEN]
-    det0 = dataset1[:, DET0:DET0 + DET_LEN]
-    det1 = dataset1[:, DET1:DET1 + DET_LEN]
-    det2 = dataset1[:, DET2:DET2 + DET_LEN]
-    det3 = dataset1[:, DET3:DET3 + DET_LEN]
-
-    return time, dt, pc1, pos, mag, det0, det1, det2, det3
 
 
 ## Calculating functions
@@ -407,33 +357,8 @@ def plot_graph(orbit_no, HEPD_time,HEPD_pc1, HEPD_pos, HEPD_mag, tel0, tel1, tel
 
 def main():
     env_setup(CONDA_PATH)
-    files = show_avail_file(DATA_PATH)
-
-    HEPD_file_path, MEPD_file_path = get_file_paths(ORBIT_NO, DATA_PATH, files)
-
-    print('Selected orbit number: ', str(ORBIT_NO), '\n\n')
-
-    # Create SpacePy datamodel.
-    HEPD_data = dm.fromHDF5(HEPD_filepath)
-    MEPD_data = dm.fromHDF5(MEPD_filepath)
-
-    file_tree(HEPD_data, MEPD_data)
-
-    #HEPD_dataset1, HEPD_dataset2 = read_hdf(HEPD_filename)
-    #print(HEPD_data[GROUP1][DATASET1])
-
-    '''
-    # Read and store data.
-    HEPD_dataset1, HEPD_dataset2 = read_hdf(HEPD_filename)
-    MEPD_dataset1, MEPD_dataset2 = read_hdf(MEPD_filename)
-
-    # Select required data from datasets.
-    HEPD_time, HEPD_pc1, HEPD_pos, HEPD_mag, tel0, tel1, tel2 = select_HEPD(HEPD_dataset1, HEPD_dataset2)
-    MEPD_time, dt, MEPD_pc1, MEPD_pos, MEPD_mag, det0, det1, det2, det3 = select_MEPD(MEPD_dataset1, MEPD_dataset2)
-
-    plot_graph(ORBIT_NO, HEPD_time,HEPD_pc1, HEPD_pos, HEPD_mag, tel0, tel1, tel2,
-                MEPD_time, dt, MEPD_pc1, MEPD_pos, MEPD_mag, det0, det1, det2, det3, SOUTH_POLE, PDF)
-    '''
+    HEPD, MEPD = data(ORBIT_NO, DATA_PATH, True, True)
+    plot(HEPD, MEPD, SOUTH_POLE, PDF)
 
 if __name__ == '__main__':
     main()
