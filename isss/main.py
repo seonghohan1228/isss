@@ -2,7 +2,6 @@
 
 #### MODULES ############################################################
 import os
-os.environ["PROJ_LIB"] = "/home/seonghohan/anaconda3/share";
 import h5py
 import numpy as np
 import matplotlib
@@ -18,6 +17,8 @@ import spacepy.datamodel as dm
 import warnings
 
 from files_functions import *
+from data_functions import *
+from constants import *
 
 #########################################################################
 
@@ -466,8 +467,7 @@ def plot_graph(orbit_no, HEPD_time,HEPD_pc1, HEPD_pos, HEPD_mag, tel0, tel1, tel
 ####################################################################################
 
 #### RUN ##########################################################################
-
-warnings.filterwarnings('ignore')
+env_setup()
 show_avail_file()
 
 
