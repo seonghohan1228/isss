@@ -1,6 +1,6 @@
 # classes.py
 from constants import *
-PC1
+
 class isssData():
     def __init__(self, orbit_no, data, group, ds1, ds2):
         self.orbit_no = orbit_no
@@ -23,5 +23,5 @@ class isssData():
             det2 = self.dataset1[:, DET2:DET2 + DET_LEN]
             det3 = self.dataset1[:, DET3:DET3 + DET_LEN]
             self.det = [det0, det1, det2, det3]
- 
+
     
