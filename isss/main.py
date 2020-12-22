@@ -1,97 +1,16 @@
 # main.py
 
 #### MODULES ############################################################
-import numpy as np
-import matplotlib
-import matplotlib.pyplot as plt
+
 import matplotlib.dates as mdates
 import matplotlib.gridspec as gridspec
 from mpl_toolkits.basemap import Basemap
 from datetime import datetime
-import aacgmv2
-from spacepy import coordinates as coords
-from spacepy.time import Ticktock
 
 from functions import *
 from classes import *
 from constants import *
-
-
-## Calculating functions
-# Slice data into MEPD-A and MEPD-B (works for PC1 and TIME)
-def sliceAB(data, subunit, n):
-    A = []
-    B = []
-    for i in range(len(data)):
-        if subunit[i] == n:
-            A.append(data[i])
-        else:
-            B.append(data[i])
-
-    return A, B
-
-# sliceAB 2D array data of MEPD data
-def sliceAB2(data, subunit, n):
-    A = []
-    B = []
-    for i in range(len(data)):
-        if subunit[i] == n:
-            A.append(data[i, :])
-        else:
-            B.append(data[i, :])
-    
-    return A, B
-
-# Calculate average magnetic field.
-def B_avg(B):
-    avg = []
-    for i in range(len(B)):
-        avg.append(np.sqrt((B[i, 4])**2 + (B[i, 5])**2 + (B[i, 6])**2))
-
-    return avg
-
-# Custom colormap, cmap
-def new_cmap():
-    jet = plt.cm.get_cmap('jet', 256)
-    newcolors = jet(np.linspace(0, 1, 256))
-    white = np.array([256/256, 256/256, 256/256, 1])
-    newcolors[0, :] = white
-    new_cmap = matplotlib.colors.ListedColormap(newcolors)
-
-    return new_cmap
-
-# Select closest value
-def closest(arr, value):
-    c = 0
-    for i in range(len(arr)):
-        if (abs(arr[i] - value) < abs(arr[c] - value)):
-            c = i
-    
-    return c
-
-# Geomagnetic latitude
-def geo_lat(alt, start_time):
-    arr = np.zeros((181, 360))
-    geo_lat = np.zeros((5, 360))
-    for j in range(360):
-        for i in range(181):
-            # Change altitude into km.
-            coordinates = coords.Coords([alt / 1000, i - 90, j - 180], 'GEO', 'sph')
-            coordinates.ticks = Ticktock(['2019-07-17T17:51:15'], 'ISO') # Unable to use 2020 data.
-            arr[i][j] = coordinates.convert('MAG', 'sph').lati
-            #arr[i][j] = (np.array(aacgmv2.get_aacgm_coord(i - 90, j - 180, int(alt / 1000), start_time)))[0]
-    
-    for j in range(360):
-        for i in range(5):
-            geo_lat[i, j] = closest(arr[:, j], 30 * i - 60) - 90
-    
-    return geo_lat
-
-# Telescope data (proton, electron)
-def div_tel(tel0, tel1, tel2):
-    # Return proton and electron data.
-    return tel0[:, 17:21], tel1[:, 17:21], tel2[:, 17:21], tel0[:, 2:13], tel1[:, 2:13], tel2[:, 2:13]
-
+from data_functions import *
 
 # Plot graphs
 def plot_graph(orbit_no, HEPD_time,HEPD_pc1, HEPD_pos, HEPD_mag, tel0, tel1, tel2,
