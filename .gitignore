@@ -1,5 +1,6 @@
 # Custom files / folders
-# INSERT FILES / FOLDERS HERE
+isss/data/
+isss/plots/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
