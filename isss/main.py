@@ -1,7 +1,6 @@
 # main.py
 
 #### MODULES ############################################################
-import os
 import h5py
 import numpy as np
 import matplotlib
@@ -14,75 +13,15 @@ import aacgmv2
 from spacepy import coordinates as coords
 from spacepy.time import Ticktock
 import spacepy.datamodel as dm
-import warnings
 
-from files_functions import *
+from file_functions import *
 from data_functions import *
 from constants import *
-
-#########################################################################
-
-
-#### CONSTANTS ##########################################################
-
-# Filename (file path is created automatically in hdf_read()).
-NORTH_POLE = 90
-SOUTH_POLE = -90
-
-DATASET1 = 'block1_values'
-DATASET2 = 'block2_values'
-PDF = 'PDF'
-PNG = 'PNG'
-
-# Data indices
-HEPD_TIME = 7       # Time (UNIX)
-MEPD_TIME = 10      # Time (UNIX)
-DT = 4              # Subunit ID
-PC1 = 5             # Packet count 1
-POS = 16            # Position (deg)
-POS_LEN = 3         # Position data length
-MAG = 0             # Magnetic field
-MAG_LEN = 8         # Magnetic field data length
-DET0 = 13           # Detector 0
-DET1 = 81           # Detector 1
-DET2 = 149          # Detector 2
-DET3 = 217          # Detector 3
-DET_LEN = 64        # Detector data length
-TEL0 = 9            # Telescope 0
-TEL1 = 50           # Telescope 1
-TEL2 = 91           # Telescope 2
-TEL_LEN = 40        # Telescope data length
-
 
 
 #### FUNCTIONS ########################################################
 
-def get_file_names(orbit_no, files):
-    if orbit_no < 0:
-        print('Error: Invalid orbit number.')
-        exit()
-    if orbit_no < 10000:
-        orbit_no = '0' + str(orbit_no)
-    else:
-        orbit_no = str(orbit_no)
 
-    for filename in files:
-        # Check orbit number for match.
-        if filename[27:32] == orbit_no:
-            # HEPD
-            if filename[0:4] == 'HEPD':
-                hepd = filename
-                continue
-            elif filename[0:4] == 'MEPD':
-                mepd = filename
-                continue
-        
-        # No match found.
-        if filename == files[-1]:
-            print('Error: No matching file found.')
-            exit()
-
-    return hepd, mepd
 
 ## Data read function
 # Read HDF5 data and returns all required datasets.
@@ -466,40 +405,35 @@ def plot_graph(orbit_no, HEPD_time,HEPD_pc1, HEPD_pos, HEPD_mag, tel0, tel1, tel
 
 ####################################################################################
 
-#### RUN ##########################################################################
-env_setup()
-show_avail_file()
+def main():
+    env_setup(CONDA_PATH)
+    files = show_avail_file(DATA_PATH)
 
+    HEPD_file_path, MEPD_file_path = get_file_paths(ORBIT_NO, DATA_PATH, files)
 
-# Get filenames.
-HEPD_filename, MEPD_filename = get_file_names(ORBIT_NO, files)
+    print('Selected orbit number: ', str(ORBIT_NO), '\n\n')
 
-HEPD_data = dm.fromHDF5('data/' + HEPD_filename)
-MEPD_data = dm.fromHDF5('data/' + MEPD_filename)
+    # Create SpacePy datamodel.
+    HEPD_data = dm.fromHDF5(HEPD_filepath)
+    MEPD_data = dm.fromHDF5(MEPD_filepath)
 
-## Show file tree.
-print('File trees:')
-HEPD_data.tree(attrs=False)
-MEPD_data.tree(attrs=False)
-print('\n')
+    file_tree(HEPD_data, MEPD_data)
 
-# Read and store data.
-HEPD_dataset1, HEPD_dataset2 = read_hdf(HEPD_filename)
-MEPD_dataset1, MEPD_dataset2 = read_hdf(MEPD_filename)
+    #HEPD_dataset1, HEPD_dataset2 = read_hdf(HEPD_filename)
+    #print(HEPD_data[GROUP1][DATASET1])
 
-# Select required data from datasets.
-HEPD_time, HEPD_pc1, HEPD_pos, HEPD_mag, tel0, tel1, tel2 = select_HEPD(HEPD_dataset1, HEPD_dataset2)
-MEPD_time, dt, MEPD_pc1, MEPD_pos, MEPD_mag, det0, det1, det2, det3 = select_MEPD(MEPD_dataset1, MEPD_dataset2)
+    '''
+    # Read and store data.
+    HEPD_dataset1, HEPD_dataset2 = read_hdf(HEPD_filename)
+    MEPD_dataset1, MEPD_dataset2 = read_hdf(MEPD_filename)
 
-plot_graph(ORBIT_NO, HEPD_time,HEPD_pc1, HEPD_pos, HEPD_mag, tel0, tel1, tel2,
-            MEPD_time, dt, MEPD_pc1, MEPD_pos, MEPD_mag, det0, det1, det2, det3, SOUTH_POLE, PDF)
+    # Select required data from datasets.
+    HEPD_time, HEPD_pc1, HEPD_pos, HEPD_mag, tel0, tel1, tel2 = select_HEPD(HEPD_dataset1, HEPD_dataset2)
+    MEPD_time, dt, MEPD_pc1, MEPD_pos, MEPD_mag, det0, det1, det2, det3 = select_MEPD(MEPD_dataset1, MEPD_dataset2)
 
-######################################################################################
+    plot_graph(ORBIT_NO, HEPD_time,HEPD_pc1, HEPD_pos, HEPD_mag, tel0, tel1, tel2,
+                MEPD_time, dt, MEPD_pc1, MEPD_pos, MEPD_mag, det0, det1, det2, det3, SOUTH_POLE, PDF)
+    '''
 
-
-
-
-
-
-
-
+if __name__ == '__main__':
+    main()
