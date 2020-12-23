@@ -1,54 +1,28 @@
-# Steps
-1. Install Python 3
-2. Install Visual Studio Code (Add Python extension after installation)
-3. Install Anaconda3
+# NEXTSat-1 ISSS Data Visualization Program
 
-# After Visual Studio Code installation
-In 'Extension' in the left panel, install the Python extension.
+## IMPORTANT: Requirements
+1. This program is written on and made to be used on a Linux machine.
+2. Python 3 must be installed.
+3. Anaconda3 and PIP should be installed (make sure to activate conda).
+4. All commands were typed in Visual Studio Code terminal.
+5. Create 'data' and 'plots' folders at the same level as 'main.py'.
+6. Move data into the 'data' folder.
+7. Open the "outmost" 'isss' folder in VS Code.
 
-# After Anaconda3 installation (Windows)
-In
-```
-Control Panel > System and Security > System > Advanced system settings > Environmetn variables > System variables > find 'Path' > New > Browse
-```
-add path to
-```
-path/to/anaconda3
-path/to/anaconda3/Scripts
-path/to/anaconda3/Library/bin
-```
-
-# Packages
-## Windows
-### basemap
-In VS Code terminal, type:
-```
-conda init
-conda create -p ./venv python=<python-version>
-conda activate ./venv
-conda install -c conda-forge proj4
-conda install -c conda-forge basemap
-```
-For aacgm v2, type
-```
-pip install aacgmv2
-```
-## Linux
-In VS Code terminal, type:
+## Packages
+In terminal, type:
 ```
 conda install h5py
 conda install numpy
 conda install matplotlib
 conda install -c conda-forge basemap
-pip3 install aacgmv2
+pip install aacgmv2
 ```
 
-Installation of SpacePy requires both a C and a Fortran compiler.
+Installation of SpacePy requires both C and Fortran compiler.
 In terminal, type:
 ```
-sudo apt-get install gfortran
-```
-In VS Code terminal, type:
-pip3 install spacepy
+sudo apt install gfortran
+pip install spacepy
 ```
 
