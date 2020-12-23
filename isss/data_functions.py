@@ -3,6 +3,7 @@ import numpy as np
 from spacepy import coordinates as coords
 from spacepy.time import Ticktock
 import aacgmv2
+from datetime import datetime
 
 ### check if sliceAB and sliceAB2 can be combined.
 def sliceAB(data, subunit, n):
@@ -91,3 +92,9 @@ def slice_tel(tel):
     electron = [electron0, electron1, electron2]
     return proton, electron
 
+def start_end_time(data):
+    ''' Gets the start and end time and converts the UNIX datetime to UTC 
+        datetime. '''
+    start_time = datetime.fromtimestamp(data.time[0])
+    end_time = datetime.fromtimestamp(data.time[-1])
+    return start_time, end_time
