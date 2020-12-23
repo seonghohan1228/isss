@@ -6,7 +6,7 @@ import matplotlib.gridspec as gridspec
 import matplotlib.dates as mdates
 from datetime import datetime
 from mpl_toolkits.basemap import Basemap
-from data_functions import slice_AB, sliceAB2, B_avg, closest, geomag_lat, \
+from data_functions import sliceAB, sliceAB2, B_avg, closest, geomag_lat, \
     slice_tel, start_end_time
 
 def new_cmap():
