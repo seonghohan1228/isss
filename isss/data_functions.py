@@ -48,7 +48,7 @@ def closest(arr, value):
             c = i
     return c
 
-def geo_lat(alt, start_time, conv_module):
+def geomag_lat(alt, start_time, conv_module):
     ''' Calculates the geomagnetic lattitude data at the given alt (altitude) 
         and start_time. This function uses either Spacepy or aacgmv2 to convert 
         between geographic and geomagnetic coordinates. The moduel used to 
@@ -92,9 +92,9 @@ def slice_tel(tel):
     electron = [electron0, electron1, electron2]
     return proton, electron
 
-def start_end_time(data):
+def start_end_time(time):
     ''' Gets the start and end time and converts the UNIX datetime to UTC 
         datetime. '''
-    start_time = datetime.fromtimestamp(data.time[0])
-    end_time = datetime.fromtimestamp(data.time[-1])
+    start_time = datetime.fromtimestamp(time[0])
+    end_time = datetime.fromtimestamp(time[-1])
     return start_time, end_time
