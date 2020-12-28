@@ -47,7 +47,7 @@ def file_tree(HEPD_data, MEPD_data):
     ''' Prints the file structure tree. '''
     print('File tree:')
     HEPD_data.tree(attrs=False)
-    print('\n')
+    print('')
     MEPD_data.tree(attrs=False)
     print('\n')
 

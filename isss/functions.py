@@ -22,7 +22,7 @@ def data(orbit_no, show_avail, show_tree):
         show_avail or show_tree is set to True, respectively. '''
     files = get_files(DATA_PATH, show_avail)
     HEPD_file_path, MEPD_file_path = get_file_paths(orbit_no, DATA_PATH, files)
-    print('Selected orbit number: ', str(orbit_no), '\n\n')
+    print('Selected orbit number: ', str(orbit_no), '\n')
     # Create SpacePy datamodel.
     HEPD_data = dm.fromHDF5(HEPD_file_path)
     MEPD_data = dm.fromHDF5(MEPD_file_path)
@@ -38,17 +38,17 @@ def plot(HEPD, MEPD, pole, conv_module, plot_name, plot_file_type):
         files are supported. '''
     plot_msg('Combined graph', 'start')
     print('')
-    fig = plt.figure(figsize=(20, 30))
-    outer = gridspec.GridSpec(4, 2, wspace=0.1, hspace=0.3)
+    fig = plt.figure(figsize=(21, 29), dpi=200)
+    outer_grid = fig.add_gridspec(4, 2, wspace=0.1, hspace=0.2)
     # Plot each data.
-    plot_pc1(fig, outer, HEPD, MEPD)
-    plot_mag(fig, outer, HEPD)
-    plot_pos(fig, outer, MEPD, pole, conv_module)
-    plot_tel(fig, outer, HEPD)
-    plot_det(fig, outer, MEPD)
+    plot_pc1(fig, outer_grid, HEPD, MEPD)
+    plot_mag(fig, outer_grid, HEPD)
+    plot_pos(fig, outer_grid, MEPD, pole, conv_module, mag=False)
+    plot_tel(fig, outer_grid, HEPD)
+    plot_det(fig, outer_grid, MEPD)
 
     plot_title(fig, MEPD, plot_file_type)
     print('')
     plot_msg('Combined graph', 'end')
-    plt.show()
+    #plt.show()
 
