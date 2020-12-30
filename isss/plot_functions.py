@@ -8,6 +8,7 @@ from datetime import datetime
 from mpl_toolkits.basemap import Basemap
 from data_functions import sliceAB, sliceAB2, B_avg, closest, geomag_lat, \
     slice_tel, start_end_time
+from plot_constants import *
 
 def new_cmap():
     ''' Creates custom colormap for HEPD telescope and MEPD detector plot. '''
@@ -33,13 +34,15 @@ def plot_pc1(fig, outer_grid, HEPD, MEPD):
     ''' Plots PC1 data of HEPD and MEPD data onto figure. '''
     plot_msg('PC1', 'start')
     plot_msg('| HEPD PC1', 'start')
-    inner_grid = outer_grid[0, 0].subgridspec(1, 2, wspace=0.1, hspace=0)
+    inner_grid = outer_grid[0, 0].subgridspec(1, 2, wspace=0.2, hspace=0)
     axes = inner_grid.subplots()
     # Plot HEPD PC1 data.
     axes[0].plot(HEPD.pc1, HEPD.time - HEPD.time[0], '-k')
-    axes[0].set_title('HEPD: Time vs PC1')
-    axes[0].set_xlabel('PC1')
-    axes[0].set_ylabel('Time (sec)')
+    axes[0].set_title('HEPD: Time vs PC1', fontsize=AXES_FONT)
+    axes[0].set_xlabel('PC1', fontsize=AXES_FONT)
+    axes[0].set_ylabel('Time (sec)', fontsize=AXES_FONT)
+    axes[0].tick_params (axis = 'x', direction='in', labelsize =TICK_FONT)
+    axes[0].tick_params (axis = 'y', direction='in', labelsize =TICK_FONT)
     plot_msg('| HEPD PC1', 'end')
     # Divide PC1 data into MEPD-A and MEPD-B
     MEPD_pc1_A, MEPD_pc1_B = sliceAB(MEPD.pc1, MEPD.dt, 3)
@@ -48,9 +51,11 @@ def plot_pc1(fig, outer_grid, HEPD, MEPD):
     plot_msg('| MEPD PC1', 'start')
     axes[1].plot(MEPD_pc1_A, MEPD_time_A - MEPD_time_A[0], '-k', label='MEPD-A')
     axes[1].plot(MEPD_pc1_B, MEPD_time_B - MEPD_time_B[0], '-r', label='MEPD-B')
-    axes[1].set_title('MEPD: Time vs PC1')
-    axes[1].set_xlabel('PC1')
-    plt.legend()
+    axes[1].set_title('MEPD: Time vs PC1', fontsize=AXES_FONT)
+    axes[1].set_xlabel('PC1', fontsize=AXES_FONT)
+    axes[1].tick_params (axis = 'x', direction='in', labelsize =TICK_FONT)
+    axes[1].tick_params (axis = 'y', direction='in', labelsize =TICK_FONT)
+    plt.legend(fontsize=TICK_FONT)
     plot_msg('| HEPD PC1', 'end')
     plot_msg('PC1', 'end')
 
@@ -68,26 +73,31 @@ def plot_mag(fig, outer_grid, data):
     ax.plot(data.time, data.mag[:, 5], '--b', label='IGRF By')
     ax.plot(data.time, data.mag[:, 6], '--r', label='IGRF Bz')
     ax.plot(data.time, mag_avg, '--y', label='IGRF|B|')
-    plt.ylabel('Magnetic Field (nT)')
+    ax.set_ylabel('Magnetic Field (nT)', fontsize=AXES_FONT)
+    ax.tick_params (axis = 'x', direction='in', labelsize =TICK_FONT)
+    ax.tick_params (axis = 'y', direction='in', labelsize =TICK_FONT)
     plt.ylim(-60000, 60000)
-    plt.legend(loc='upper center', ncol=7, prop={'size': 8})
+    plt.xlim(data.time[0], data.time[-1])
+    plt.legend(loc='upper center', ncol=7, prop={'size': 4})
     plot_msg('Magnetic field', 'end')
 
 def plot_geomag(ax, m, alt, start_time, conv_module):
-    ''' Plots geomagnetic latitudes onto map using geomag_lat function. Conversion
-        module can be selected. Either Spacepy or AACGMV2 is used. Also plots 
-        terminator onto map. '''
+    ''' Plots geomagnetic latitudes onto map using geomag_lat function. 
+        Conversion module can be selected. Either Spacepy or AACGMV2 is used. 
+        Also plots terminator onto map. '''
     # Plot geomagnetic latitude.
     mat = geomag_lat(alt[0], start_time, conv_module)
     for i in range(5):
         x, y = m(np.arange(360) - 180, mat[i, :])
         m.plot(x, y, 'b', linewidth=1)
         if i < 2:
-            ax.annotate(str(30 * i - 60) + 'S', (x[0], y[0]), color='b')
+            ax.annotate(str(30 * i - 60) + 'S', (x[0], y[0]), color='b', 
+                    fontsize=TICK_FONT)
         elif i == 2:
-            ax.annotate('0', (x[0], y[0]), color='b')
+            ax.annotate('0', (x[0], y[0]), color='b', fontsize=TICK_FONT)
         elif i > 2:
-            ax.annotate(str(30 * i - 60) + 'N', (x[0], y[0]), color='b')
+            ax.annotate(str(30 * i - 60) + 'N', (x[0], y[0]), color='b', 
+                    fontsize=TICK_FONT)
     # Plot terminator
     m.nightshade(start_time)
 
@@ -112,20 +122,24 @@ def plot_pos(fig, outer_grid, data, pole, conv_module, mag=True):
     m = Basemap(projection='merc',llcrnrlat=-85,urcrnrlat=85, llcrnrlon=-180,\
             urcrnrlon=180, ax=axes[0])
     m.drawcoastlines()
-    m.drawmeridians(np.arange(0,360,45), labels=[False, False, False, True])
-    m.drawparallels(np.arange(-90,90,30), labels=[False, True, False, False])
+    m.drawmeridians(np.arange(0,360,45), labels=[False, False, False, True], 
+                fontsize=TICK_FONT)
+    m.drawparallels(np.arange(-90,90,30), labels=[False, True, False, False], 
+                fontsize=TICK_FONT)
     # Plot satellite position.
     X, Y = m(lon, lat)
     m.scatter(X, Y, marker='.', c=data.time, cmap=plt.get_cmap('jet'))
-    axes[0].annotate(start_time.strftime('%H:%M'), (X[0], Y[0]))
-    axes[0].annotate(end_time.strftime('%H:%M'), (X[-1], Y[-1]))
+    axes[0].annotate(start_time.strftime('%H:%M'), (X[0], Y[0]), 
+                fontsize=AXES_FONT)
+    axes[0].annotate(end_time.strftime('%H:%M'), (X[-1], Y[-1]), 
+                fontsize=AXES_FONT)
     #Plot geomagnetic latitude.
     if mag == True:
         plot_msg('| | Geomagnetic latitude', 'start')
         plot_geomag(axes[0], m, alt, start_time, conv_module)
         plot_msg('| | Geomagnetic latitude', 'end')
-        axes[0].set_title('Orbit (Mercador projection)')
-        plot_msg('| Mercador projection', 'end')
+    axes[0].set_title('Orbit (Mercador projection)', fontsize=AXES_FONT)
+    plot_msg('| Mercador projection', 'end')
     # Orthographic projection.
     plot_msg('| Orthographic projection', 'start')
     if pole == 'north':
@@ -137,23 +151,26 @@ def plot_pos(fig, outer_grid, data, pole, conv_module, mag=True):
         exit()
     m = Basemap(projection='ortho', lat_0=p, lon_0=0, ax=axes[1])
     m.drawcoastlines()
-    m.drawmeridians(np.arange(0,360,45), labels=[False, False, False, True])
+    m.drawmeridians(np.arange(0,360,45), labels=[False, False, False, True], 
+                fontsize=TICK_FONT)
     # Cannot label parallels on Orthographic basemap.
     m.drawparallels(np.arange(-90,90,30))
     # Plot satellite position.
     X, Y = m(lon, lat)
     m.scatter(X, Y, marker='.', c=data.time, cmap=plt.get_cmap('jet'))
-    axes[1].annotate(start_time.strftime('%H:%M'), (X[0], Y[0]))
-    axes[1].annotate(end_time.strftime('%H:%M'), (X[-1], Y[-1]))
+    axes[1].annotate(start_time.strftime('%H:%M'), (X[0], Y[0]), 
+                fontsize=AXES_FONT)
+    axes[1].annotate(end_time.strftime('%H:%M'), (X[-1], Y[-1]), 
+                fontsize=AXES_FONT)
     #cbar = fig.colorbar(s1, ax=ax2, label='Time (UNIX)')
     # Plot geomagnetic latitude.
     if mag == True:
         plot_msg('| | Geomagnetic latitude', 'start')
         plot_geomag(axes[1], m, alt, start_time, conv_module)
         plot_msg('| | Geomagnetic latitude', 'end')
-        axes[1].set_title('Orbit (Orthographic projection)')
-        plot_msg('| Orthographic projection', 'end')
-        plot_msg('Satellite position', 'end')
+    axes[1].set_title('Orbit (Orthographic projection)', fontsize=AXES_FONT)
+    plot_msg('| Orthographic projection', 'end')
+    plot_msg('Satellite position', 'end')
 
 def nplot(fig, axes, data, xmin, xmax, label, xlabel, ylabel1, ylabel2):
     ''' Plots n plots vertically (stacked). lable and ylabel can be entered by 
@@ -167,18 +184,21 @@ def nplot(fig, axes, data, xmin, xmax, label, xlabel, ylabel1, ylabel2):
         axes[i].imshow(X=np.transpose(data[i]), origin='lower', 
             cmap=new_cmap(), aspect='auto', interpolation='none', 
             extent = [xmin, xmax, 0, 400])
+        axes[i].tick_params (axis = 'x', direction='in', labelsize =TICK_FONT)
+        axes[i].tick_params (axis = 'y', direction='in', labelsize =TICK_FONT)
         axes[i].text(0.02, 0.85, (label + ' ' + str(i)), 
-            horizontalalignment='left', transform=axes[i].transAxes)
+            horizontalalignment='left', transform=axes[i].transAxes, 
+            fontsize=TICK_FONT)
         if i != n-1:
             plt.setp(axes[i].get_xticklabels(), visible=False)
     # ylabel center allignment.
     if n == 3:
-        axes[1].set_ylabel(ylabel1 + ylabel2)
+        axes[1].set_ylabel(ylabel1 + ylabel2, fontsize=AXES_FONT)
     elif n == 4:
-        axes[1].set_ylabel(ylabel2)
-        axes[2].set_ylabel(ylabel1)
+        axes[1].set_ylabel(ylabel2, fontsize=AXES_FONT)
+        axes[2].set_ylabel(ylabel1, fontsize=AXES_FONT)
     # Show xtick labels on the bottom-most plot.
-    plt.setp(axes[n-1].get_xticklabels(), visible=xlabel)
+    plt.setp(axes[n-1].get_xticklabels(), visible=xlabel, fontsize=TICK_FONT)
     axes[n-1].xaxis_date()
     axes[n-1].xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
     #cb_ax = fig.add_axes([0.92, 0.05, 0.02, 0.9])
@@ -260,7 +280,7 @@ def plot_title(fig, data, plot_file_type):
         title = 'Orbit: ' + str(orbit_no) + '   Date: ' + str(a) + ' - ' \
             + str(b) + 'UT (' + str(c) + ' sec)'
         savename = 'isss/plots/ORB_' + str(orbit_no)
-    fig.suptitle(title, fontsize=20)
+    fig.suptitle(title, fontsize=TITLE_FONT)
     # Filetype
     if plot_file_type == 'pdf':
         plt.savefig(savename + '.pdf')

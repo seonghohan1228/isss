@@ -38,12 +38,13 @@ def plot(HEPD, MEPD, pole, conv_module, plot_name, plot_file_type):
         files are supported. '''
     plot_msg('Combined graph', 'start')
     print('')
-    fig = plt.figure(figsize=(21, 29), dpi=200)
-    outer_grid = fig.add_gridspec(4, 2, wspace=0.1, hspace=0.2)
+    fig = plt.figure(dpi=200)
+    fig.set_size_inches(WIDTH, HEIGHT) 
+    outer_grid = fig.add_gridspec(4, 2, wspace=0.2, hspace=0.2)
     # Plot each data.
     plot_pc1(fig, outer_grid, HEPD, MEPD)
     plot_mag(fig, outer_grid, HEPD)
-    plot_pos(fig, outer_grid, MEPD, pole, conv_module, mag=False)
+    plot_pos(fig, outer_grid, MEPD, pole, conv_module, mag=True)
     plot_tel(fig, outer_grid, HEPD)
     plot_det(fig, outer_grid, MEPD)
 
