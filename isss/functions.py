@@ -44,7 +44,7 @@ def plot(HEPD, MEPD, pole, conv_module, plot_name, plot_file_type):
     # Plot each data.
     plot_pc1(fig, outer_grid, HEPD, MEPD)
     plot_mag(fig, outer_grid, HEPD)
-    plot_pos(fig, outer_grid, MEPD, pole, conv_module, mag=True)
+    plot_pos(fig, outer_grid, MEPD, pole, conv_module, mag=False)
     plot_tel(fig, outer_grid, HEPD)
     plot_det(fig, outer_grid, MEPD)
 

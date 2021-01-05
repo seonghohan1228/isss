@@ -30,6 +30,34 @@ def plot_msg(name, state):
         print('Error: plot_msg() state is invalid')
         exit()
 
+def make_ticks(time, lat, lon, data_num):
+    ''' Creates ticks for UT, GLAT, GLONG. The number of ticks are given by 
+        constant TICK_NUM in plot_constants.py. '''
+    ticks = []
+    labels = []
+    time_data_num = len(time)
+    pos_data_num = len(lat)
+    time_interval = round(time_data_num / TICK_NUM)
+    pos_interval = round(pos_data_num / TICK_NUM)
+    data_interval = round(data_num / TICK_NUM)
+    for i in range(TICK_NUM):
+        time_index = time_interval * i
+        pos_index = pos_interval * i
+        data_index = data_interval * i
+        t = datetime.fromtimestamp(time[time_index])
+        if i == 0:
+            ut = 'UT'
+            glat = 'GLAT'
+            glong = 'GLONG'
+        else:
+            ut = t.strftime('%H:%M')
+            glat = str('{:.1f}'.format(lat[pos_index]))
+            glong = str('{:.1f}'.format(lat[pos_index]))
+        ticks.append(data_index)
+        # '\n' for multiline ticks.
+        labels.append(ut + '\n' + glat + '\n' + glong)
+    return ticks, labels
+
 def plot_pc1(fig, outer_grid, HEPD, MEPD):
     ''' Plots PC1 data of HEPD and MEPD data onto figure. '''
     plot_msg('PC1', 'start')
@@ -64,20 +92,28 @@ def plot_mag(fig, outer_grid, data):
     plot_msg('Magnetic field', 'start')
     inner_grid = outer_grid[1, 0].subgridspec(1, 1, wspace=0, hspace=0)
     ax = inner_grid.subplots()
+    time = data.time
+    mag = data.mag
     mag_avg = B_avg(data.mag)
+    lat = data.pos[:, 0]
+    lon = data.pos[:, 1]
     # Plot magnetic field data.
-    ax.plot(data.time, data.mag[:, 0], 'k', label='Bx')
-    ax.plot(data.time, data.mag[:, 1], 'b', label='By')
-    ax.plot(data.time, data.mag[:, 2], 'r', label='Bz')
-    ax.plot(data.time, data.mag[:, 4], '--k', label='IGRF Bx')
-    ax.plot(data.time, data.mag[:, 5], '--b', label='IGRF By')
-    ax.plot(data.time, data.mag[:, 6], '--r', label='IGRF Bz')
-    ax.plot(data.time, mag_avg, '--y', label='IGRF|B|')
+    ax.plot(time, mag[:, 0], 'k', label='Bx')
+    ax.plot(time, mag[:, 1], 'b', label='By')
+    ax.plot(time, mag[:, 2], 'r', label='Bz')
+    ax.plot(time, mag[:, 4], '--k', label='IGRF Bx')
+    ax.plot(time, mag[:, 5], '--b', label='IGRF By')
+    ax.plot(time, mag[:, 6], '--r', label='IGRF Bz')
+    ax.plot(time, mag_avg, '--y', label='IGRF|B|')
     ax.set_ylabel('Magnetic Field (nT)', fontsize=AXES_FONT)
     ax.tick_params (axis = 'x', direction='in', labelsize =TICK_FONT)
     ax.tick_params (axis = 'y', direction='in', labelsize =TICK_FONT)
     plt.ylim(-60000, 60000)
-    plt.xlim(data.time[0], data.time[-1])
+    plt.xlim(time[-1], time[0])
+    ticks, label = make_ticks(time, lat, lon, time[-1] - time[0])
+    ax.set_xticks(ticks + time[0])
+    ax.set_xticklabels(label)
+    plt.setp(ax.get_xticklabels(), visible=False, fontsize=TICK_FONT)    
     plt.legend(loc='upper center', ncol=7, prop={'size': 4})
     plot_msg('Magnetic field', 'end')
 
@@ -172,7 +208,7 @@ def plot_pos(fig, outer_grid, data, pole, conv_module, mag=True):
     plot_msg('| Orthographic projection', 'end')
     plot_msg('Satellite position', 'end')
 
-def nplot(fig, axes, data, xmin, xmax, label, xlabel, ylabel1, ylabel2):
+def nplot(fig, axes, data, time, lat, lon, label, xlabel, ylabel1, ylabel2):
     ''' Plots n plots vertically (stacked). lable and ylabel can be entered by 
         setting variables. Depending on the number of subplots, ylabel1 and 
         ylabel2 can either be combined or separated. The number of plots are 
@@ -180,12 +216,13 @@ def nplot(fig, axes, data, xmin, xmax, label, xlabel, ylabel1, ylabel2):
         xlabel can be set to True to show values on the x axis, or False to 
         hide values. '''
     n = len(data)
+    ticks, labels = make_ticks(time, lat, lon, len(data[0]))
     for i in range(n):
         axes[i].imshow(X=np.transpose(data[i]), origin='lower', 
-            cmap=new_cmap(), aspect='auto', interpolation='none', 
-            extent = [xmin, xmax, 0, 400])
-        axes[i].tick_params (axis = 'x', direction='in', labelsize =TICK_FONT)
-        axes[i].tick_params (axis = 'y', direction='in', labelsize =TICK_FONT)
+            cmap=new_cmap(), aspect='auto', interpolation='none')
+        axes[i].set_xticks(ticks)
+        axes[i].tick_params(axis = 'x', direction='in', labelsize =TICK_FONT)
+        axes[i].tick_params(axis = 'y', direction='in', labelsize =TICK_FONT)
         axes[i].text(0.02, 0.85, (label + ' ' + str(i)), 
             horizontalalignment='left', transform=axes[i].transAxes, 
             fontsize=TICK_FONT)
@@ -198,9 +235,8 @@ def nplot(fig, axes, data, xmin, xmax, label, xlabel, ylabel1, ylabel2):
         axes[1].set_ylabel(ylabel2, fontsize=AXES_FONT)
         axes[2].set_ylabel(ylabel1, fontsize=AXES_FONT)
     # Show xtick labels on the bottom-most plot.
+    axes[n-1].set_xticklabels(labels)
     plt.setp(axes[n-1].get_xticklabels(), visible=xlabel, fontsize=TICK_FONT)
-    axes[n-1].xaxis_date()
-    axes[n-1].xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
     #cb_ax = fig.add_axes([0.92, 0.05, 0.02, 0.9])
     #cbar = fig.colorbar(im, cax=cb_ax)
 
@@ -210,22 +246,22 @@ def plot_tel(fig, outer_grid, data):
     # Proton and electron data.
     tel = data.tel
     p, e = slice_tel(tel)
-    start_time, end_time = start_end_time(data.time)
-    xmin = mdates.date2num(start_time)
-    xmax = mdates.date2num(end_time)
+    time = data.time
+    lat = data.pos[:, 0]
+    lon = data.pos[:, 1]
     # Plot HEPD proton data
     plot_msg('| HEPD proton', 'start')
     inner_grid_p = outer_grid[2, 0].subgridspec(3, 1, wspace=0, hspace=0)
     axes_p = inner_grid_p.subplots()
-    nplot(fig, axes_p, p, xmin, xmax, 'Telescope', False, 'HEPD Proton ', 
-        'Energy [MeV]')
+    nplot(fig, axes_p, p, time, lat, lon, 'Telescope', False, 
+        'HEPD Proton ', 'Energy [MeV]')
     plot_msg('| HEPD proton', 'end')
     # Plot HEPD electron data
     plot_msg('| HEPD electron', 'start')
     inner_grid_e = outer_grid[3, 0].subgridspec(3, 1, wspace=0, hspace=0)
     axes_e = inner_grid_e.subplots()
-    nplot(fig, axes_e, e, xmin, xmax, 'Telescope', True, 'HEPD Electron ', 
-        'Energy [MeV]')
+    nplot(fig, axes_e, e, time, lat, lon, 'Telescope', True, 
+        'HEPD Electron ', 'Energy [MeV]')
     plot_msg('| HEPD electron', 'end')
     plot_msg('HEPD telescope', 'end')
 
@@ -240,26 +276,23 @@ def plot_det(fig, outer_grid, data):
         A, B = sliceAB2(det[i], data.dt, 3)
         det_A.append(A)
         det_B.append(B)
+    time = data.time
+    lat = data.pos[:, 0]
+    lon = data.pos[:, 1]
     time_A, time_B = sliceAB(data.time, data.dt, 3)
     # MEPD-A
     plot_msg('| MEPD-A detector', 'start')
-    start_time, end_time = start_end_time(time_A)
-    xmin = mdates.date2num(start_time)
-    xmax = mdates.date2num(end_time)
     inner_grid_A = outer_grid[2, 1].subgridspec(4, 1, wspace=0, hspace=0)
     axes_A = inner_grid_A.subplots()
-    nplot(fig, axes_A, det_A, xmin, xmax, 'Detector', False, 'MEPD-A ', 
-        'Energy [keV]')
+    nplot(fig, axes_A, det_A, time, lat, lon, 'Detector', False, 
+        'MEPD-A ', 'Energy [keV]')
     plot_msg('| MEPD-A detector', 'end')
     # MEPD-B
     plot_msg('| MEPD-B detector', 'start')
-    start_time, end_time = start_end_time(time_B)
-    xmin = mdates.date2num(start_time)
-    xmax = mdates.date2num(end_time)
     inner_grid_B = outer_grid[3, 1].subgridspec(4, 1, wspace=0, hspace=0)
     axes_B = inner_grid_B.subplots()
-    nplot(fig, axes_B, det_B, xmin, xmax, 'Detector', True, 'MEPD-B ', 
-        'Energy [keV]')
+    nplot(fig, axes_B, det_B, time, lat, lon, 'Detector', True, 
+        'MEPD-B ', 'Energy [keV]')
     plot_msg('| MEPD-B detector', 'end')
     plot_msg('MEPD detector', 'end')
 
