@@ -208,7 +208,31 @@ def plot_pos(fig, outer_grid, data, pole, conv_module, mag=True):
     plot_msg('| Orthographic projection', 'end')
     plot_msg('Satellite position', 'end')
 
-def nplot(fig, axes, data, time, lat, lon, label, xlabel, ylabel1, ylabel2):
+def yticks(axes, data):
+    ''' Plots appropriate yticks for HEPD telescope and MEPD detector plot. 
+        Set 'data' to 'p', 'e', or 'det' for proton, electron, and detector 
+        plot, respectively. '''
+    # Telescope
+    if data == 'p':
+        labels = [3, 7, 11, 14, 20, 24, 38]
+        ticks = list(range(len(labels)))
+    elif data == 'e':
+        labels = [0.35, 0.45, 0.56, 0.66, 0.77, 0.87, 0.98, 1.08, 1.19, 1.32, 1.52, 
+                2, 2.5, 3, 3.5, 4.5]
+        ticks = list(range(len(labels)))
+    # Detector
+    elif data == 'det':
+        labels = [0, 100, 200, 300, 400]
+        ticks = np.linspace(1, 64, 5)
+    else:
+        print('Error: invalid data to create yticks')
+        exit()
+    for ax in axes:
+        ax.set_yticks(ticks)
+        ax.set_yticklabels(labels)
+
+def nplot(fig, axes, data, time, lat, lon, label, xlabel, ylabel1, ylabel2, 
+        plot_data):
     ''' Plots n plots vertically (stacked). lable and ylabel can be entered by 
         setting variables. Depending on the number of subplots, ylabel1 and 
         ylabel2 can either be combined or separated. The number of plots are 
@@ -237,6 +261,8 @@ def nplot(fig, axes, data, time, lat, lon, label, xlabel, ylabel1, ylabel2):
     # Show xtick labels on the bottom-most plot.
     axes[n-1].set_xticklabels(labels)
     plt.setp(axes[n-1].get_xticklabels(), visible=xlabel, fontsize=TICK_FONT)
+    # Set yticks.
+    yticks(axes, plot_data)
     #cb_ax = fig.add_axes([0.92, 0.05, 0.02, 0.9])
     #cbar = fig.colorbar(im, cax=cb_ax)
 
@@ -254,14 +280,14 @@ def plot_tel(fig, outer_grid, data):
     inner_grid_p = outer_grid[2, 0].subgridspec(3, 1, wspace=0, hspace=0)
     axes_p = inner_grid_p.subplots()
     nplot(fig, axes_p, p, time, lat, lon, 'Telescope', False, 
-        'HEPD Proton ', 'Energy [MeV]')
+        'HEPD Proton ', 'Energy [MeV]', 'p')
     plot_msg('| HEPD proton', 'end')
     # Plot HEPD electron data
     plot_msg('| HEPD electron', 'start')
     inner_grid_e = outer_grid[3, 0].subgridspec(3, 1, wspace=0, hspace=0)
     axes_e = inner_grid_e.subplots()
     nplot(fig, axes_e, e, time, lat, lon, 'Telescope', True, 
-        'HEPD Electron ', 'Energy [MeV]')
+        'HEPD Electron ', 'Energy [MeV]', 'e')
     plot_msg('| HEPD electron', 'end')
     plot_msg('HEPD telescope', 'end')
 
@@ -276,7 +302,6 @@ def plot_det(fig, outer_grid, data):
         A, B = sliceAB2(det[i], data.dt, 3)
         det_A.append(A)
         det_B.append(B)
-    time = data.time
     lat = data.pos[:, 0]
     lon = data.pos[:, 1]
     time_A, time_B = sliceAB(data.time, data.dt, 3)
@@ -284,15 +309,15 @@ def plot_det(fig, outer_grid, data):
     plot_msg('| MEPD-A detector', 'start')
     inner_grid_A = outer_grid[2, 1].subgridspec(4, 1, wspace=0, hspace=0)
     axes_A = inner_grid_A.subplots()
-    nplot(fig, axes_A, det_A, time, lat, lon, 'Detector', False, 
-        'MEPD-A ', 'Energy [keV]')
+    nplot(fig, axes_A, det_A, time_A, lat, lon, 'Detector', False, 
+        'MEPD-A ', 'Energy [keV]', 'det')
     plot_msg('| MEPD-A detector', 'end')
     # MEPD-B
     plot_msg('| MEPD-B detector', 'start')
     inner_grid_B = outer_grid[3, 1].subgridspec(4, 1, wspace=0, hspace=0)
     axes_B = inner_grid_B.subplots()
-    nplot(fig, axes_B, det_B, time, lat, lon, 'Detector', True, 
-        'MEPD-B ', 'Energy [keV]')
+    nplot(fig, axes_B, det_B, time_B, lat, lon, 'Detector', True, 
+        'MEPD-B ', 'Energy [keV]', 'det')
     plot_msg('| MEPD-B detector', 'end')
     plot_msg('MEPD detector', 'end')
 

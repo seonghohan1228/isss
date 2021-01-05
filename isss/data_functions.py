@@ -82,13 +82,13 @@ def geomag_lat(alt, start_time, conv_module):
 def slice_tel(tel):
     ''' Slices HEPD telescope data into proton and electron data. '''
     tel0, tel1, tel2 = tel[0], tel[1], tel[2]
-    proton0 = tel0[:, 17:21]
-    proton1 = tel1[:, 17:21]
-    proton2 = tel2[:, 17:21]
+    proton0 = np.concatenate((tel0[:, 17:21], tel0[:, 39:37:-1]), axis=1)
+    proton1 = np.concatenate((tel1[:, 17:21], tel1[:, 39:37:-1]), axis=1)
+    proton2 = np.concatenate((tel2[:, 17:21], tel2[:, 39:37:-1]), axis=1)
     proton = [proton0, proton1, proton2]
-    electron0 = tel0[:, 2:13]
-    electron1 = tel1[:, 2:13]
-    electron2 = tel2[:, 2:13]
+    electron0 = np.concatenate((tel0[:, 2:13], tel0[:, 31:27:-1]), axis=1)
+    electron1 = np.concatenate((tel1[:, 2:13], tel1[:, 31:27:-1]), axis=1)
+    electron2 = np.concatenate((tel2[:, 2:13], tel2[:, 31:27:-1]), axis=1)
     electron = [electron0, electron1, electron2]
     return proton, electron
 
